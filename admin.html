@@ -1,70 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Dental Core - Admin Panel</title>
+    <title>Dental Core - لوحة التحكم</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 50px; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 400px; }
-        h2 { color: #2c3e50; text-align: center; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; max-width: 500px; margin: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; }
-        button:hover { background: #2980b9; }
+        button { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Dental Core Admin</h2>
-    <input type="text" id="subjectName" placeholder="Subject Name">
-    <input type="text" id="fileLink" placeholder="Google Drive Link">
+    <h2>إضافة محتوى جديد</h2>
+    
     <select id="year">
-        <option value="Year1">Year 1</option>
-        <option value="Year2">Year 2</option>
-        <option value="Year3">Year 3</option>
-        <option value="Year4">Year 4</option>
-        <option value="Year5">Year 5</option>
+        <option value="Year1">السنة الأولى</option>
+        <option value="Year2">السنة الثانية</option>
+        <option value="Year3">السنة الثالثة</option>
     </select>
-    <button id="saveBtn">Save Material</button>
+
+    <select id="semester">
+        <option value="Sem1">الترم الأول</option>
+        <option value="Sem2">الترم الثاني</option>
+    </select>
+
+    <input type="text" id="subject" placeholder="اسم المادة">
+    <input type="text" id="fileLink" placeholder="رابط الملف (درايف، يوتيوب، إلخ)">
+    
+    <button id="saveBtn">حفظ المحتوى</button>
 </div>
 
 <script type="module">
-    // 1. استيراد دوال Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
-    // 2. إعداداتك (ضع بياناتك هنا)
     const firebaseConfig = {
       apiKey: "AIzaSyBlIsEjPuyyp0VKgNffgu5StvSizata6Lo",
-      authDomain: "dental-core-2242b.firebaseapp.com",
       projectId: "dental-core-2242b",
-      storageBucket: "dental-core-2242b.firebasestorage.app",
-      messagingSenderId: "609754104298",
-      appId: "1:609754104298:web:3b5670b4dc8da6e880f293"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 3. وظيفة الحفظ
     document.getElementById('saveBtn').addEventListener('click', async () => {
-        const subject = document.getElementById('subjectName').value;
-        const link = document.getElementById('fileLink').value;
-        const year = document.getElementById('year').value;
+        const data = {
+            year: document.getElementById('year').value,
+            semester: document.getElementById('semester').value,
+            subject: document.getElementById('subject').value,
+            link: document.getElementById('fileLink').value,
+            timestamp: new Date()
+        };
 
         try {
-            await addDoc(collection(db, "materials"), {
-                subject: subject,
-                link: link,
-                year: year,
-                timestamp: new Date()
-            });
-            alert("تم رفع المادة بنجاح يا دكتور إبراهيم!");
+            await addDoc(collection(db, "materials"), data);
+            alert("تمت الإضافة بنجاح!");
         } catch (e) {
-            alert("خطأ في الرفع: " + e.message);
+            alert("خطأ: " + e.message);
         }
     });
 </script>
-
 </body>
 </html>
