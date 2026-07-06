@@ -1,65 +1,49 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>Dental Core - لوحة التحكم</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 12px; max-width: 500px; margin: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; }
-    </style>
-</head>
-<body>
-
-<div class="card">
-    <h2>إضافة محتوى جديد</h2>
-    
-    <select id="year">
-        <option value="Year1">السنة الأولى</option>
-        <option value="Year2">السنة الثانية</option>
-        <option value="Year3">السنة الثالثة</option>
+<input type="file" id="fileInput"> <select id="year">
+    <option value="Year1">السنة الأولى</option>
+    <option value="Year2">السنة الثانية</option>
     </select>
 
-    <select id="semester">
-        <option value="Sem1">الترم الأول</option>
-        <option value="Sem2">الترم الثاني</option>
-    </select>
+<select id="semester">
+    <option value="Sem1">الترم الأول</option>
+    <option value="Sem2">الترم الثاني</option>
+</select>
 
-    <input type="text" id="subject" placeholder="اسم المادة">
-    <input type="text" id="fileLink" placeholder="رابط الملف (درايف، يوتيوب، إلخ)">
-    
-    <button id="saveBtn">حفظ المحتوى</button>
-</div>
+<input type="text" id="subject" placeholder="اسم المادة">
+
+<select id="type">
+    <option value="Lec">Lec</option>
+    <option value="Lab">Lab</option>
+</select>
+
+<input type="number" id="number" placeholder="رقم المحاضرة أو المعمل (1-10)">
+
+<button id="uploadBtn">رفع الملف</button>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBlIsEjPuyyp0VKgNffgu5StvSizata6Lo",
-      projectId: "dental-core-2242b",
-    };
+    const storage = getStorage();
+    const db = getFirestore();
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    document.getElementById('uploadBtn').addEventListener('click', async () => {
+        const file = document.getElementById('fileInput').files[0];
+        const fileName = `${document.getElementById('year').value}/${document.getElementById('subject').value}/${file.name}`;
+        
+        // 1. رفع الملف للمخزن
+        const storageRef = ref(storage, fileName);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
 
-    document.getElementById('saveBtn').addEventListener('click', async () => {
-        const data = {
+        // 2. حفظ تفاصيل الملف في قاعدة البيانات
+        await addDoc(collection(db, "materials"), {
             year: document.getElementById('year').value,
             semester: document.getElementById('semester').value,
             subject: document.getElementById('subject').value,
-            link: document.getElementById('fileLink').value,
-            timestamp: new Date()
-        };
-
-        try {
-            await addDoc(collection(db, "materials"), data);
-            alert("تمت الإضافة بنجاح!");
-        } catch (e) {
-            alert("خطأ: " + e.message);
-        }
+            type: document.getElementById('type').value,
+            number: document.getElementById('number').value,
+            fileUrl: url
+        });
+        alert("تم الرفع بنجاح!");
     });
 </script>
-</body>
-</html>
