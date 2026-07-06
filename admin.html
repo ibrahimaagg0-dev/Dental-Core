@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pro Dent Admin Panel</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; padding: 20px; }
+        .admin-card { background: white; padding: 25px; border-radius: 12px; max-width: 500px; margin: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; }
+        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="admin-card">
+    <h2>Control Panel - Add Material</h2>
+    
+    <input type="text" id="subjectName" placeholder="Subject Name">
+    <input type="text" id="fileLink" placeholder="Google Drive Link">
+    
+    <select id="year">
+        <option value="Year1">Year 1</option>
+        <option value="Year2">Year 2</option>
+        <option value="Year3">Year 3</option>
+    </select>
+
+    <button onclick="saveData()">Save to Database</button>
+</div>
+
+<script>
+    function saveData() {
+        const subject = document.getElementById('subjectName').value;
+        const link = document.getElementById('fileLink').value;
+        const year = document.getElementById('year').value;
+        
+        // هنا سنقوم لاحقاً بربط هذا بـ Firebase
+        alert("Data saved: " + subject + " under " + year);
+        console.log({subject, link, year});
+    }
+</script>
+</body>
+</html>

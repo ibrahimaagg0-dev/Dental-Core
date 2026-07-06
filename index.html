@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pro Dent Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #eef2f3; display: flex; justify-content: center; padding: 50px; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 400px; }
+        h2 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
+        select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #219150; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Pro Dent - Portal</h2>
+    <select id="yearSelect" onchange="updateSubjects()">
+        <option value="">Select Year</option>
+        <option value="Year1">Year 1</option>
+        <option value="Year2">Year 2</option>
+        <option value="Year3">Year 3</option>
+        <option value="Year4">Year 4</option>
+        <option value="Year5">Year 5</option>
+    </select>
+
+    <select id="semSelect" onchange="updateSubjects()">
+        <option value="">Select Semester</option>
+        <option value="Semester1">Semester 1</option>
+        <option value="Semester2">Semester 2</option>
+    </select>
+
+    <select id="subjectSelect"><option value="">Select Subject</option></select>
+    <select id="typeSelect">
+        <option value="">Select Type</option>
+        <option value="Theoretical">Theoretical</option>
+        <option value="Practical">Practical</option>
+        <option value="Summaries">Summaries</option>
+    </select>
+
+    <button onclick="search()">Show Files</button>
+</div>
+
+<script>
+const data = {
+    "Year1": {
+        "Semester1": ["Dental Anatomy and Physiology 1", "General Anatomy 1", "General Histology 1", "General Physiology 1", "Biochemistry 1", "English Language"],
+        "Semester2": ["Dental anatomy and Physiology 2", "General Anatomy 2", "General Histology 2", "General Physiology 2", "Biochemistry 2", "Human Rights"]
+    },
+    "Year2": {
+        "Semester1": ["Oral Histology and Embryology 1", "Dental Biomaterials 1", "Pharmacology 1", "General Pathology 1", "Microbiology 1"],
+        "Semester2": ["Oral Histology and Embryology 2", "Dental Biomaterials 2", "Pharmacology 2", "General Pathology 2", "Microbiology 2", "Oral Pathology 1", "Infection control"]
+    },
+    "Year3": {
+        "Semester1": ["Removable Prosthodontics 1", "Fixed Prosthodontics 1", "Operative Dentistry 1", "Oral Radiology 1", "Orthodontics 1", "Oral Pathology 2", "General Medicine I", "General Surgery"],
+        "Semester2": ["Operative Dentistry 2", "Fixed Prosthodontics 2", "Removable Prosthodontics 2", "Oral Radiology 2", "Orthodontics 2", "Oral Pathology 3", "Oral Diagnosis", "General Medicine II", "General Surgery II"]
+    },
+    "Year4": {
+        "Semester1": ["Operative Dentistry 3", "Fixed Prosthodontics 3", "Removable Prosthodontics 3", "Oral Medicine 1", "Endodontics 1", "Preventive Dentistry", "Oral Surgery 1"],
+        "Semester2": ["Operative Dentistry 4", "Fixed Prosthodontics 4", "Removable Prosthodontics 4", "Oral Medicine 2", "Endodontics 2", "Oral Radiology 3", "Oral Surgery 2", "Periodontology 1"]
+    },
+    "Year5": {
+        "Semester1": ["Operative Dentistry 5", "Fixed Prosthodontics 5", "Removable Prosthodontics 5", "Endodontics 3", "Oral Surgery 3", "Pediatric Dentistry 1", "Implantology 1", "Periodontology 2"],
+        "Semester2": ["Operative Dentistry 6", "Fixed Prosthodontics 6", "Removable Prosthodontics 6", "Endodontics 4", "Oral Surgery 4", "Pediatric Dentistry 2", "Special Care Dentistry", "Implantology 2"]
+    }
+};
+
+function updateSubjects() {
+    const year = document.getElementById('yearSelect').value;
+    const sem = document.getElementById('semSelect').value;
+    const subjectSelect = document.getElementById('subjectSelect');
+    subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+    if (year && sem && data[year][sem]) {
+        data[year][sem].forEach(sub => {
+            let opt = document.createElement("option");
+            opt.value = sub; opt.innerHTML = sub;
+            subjectSelect.appendChild(opt);
+        });
+    }
+}
+function search() { alert("Searching for: " + document.getElementById('subjectSelect').value); }
+</script>
+</body>
+</html>
