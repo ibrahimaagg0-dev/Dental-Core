@@ -3,8 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>Dental Core - Admin Panel</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f7f6; }
+        .card { background: white; padding: 20px; border-radius: 12px; max-width: 450px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        select, input, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { background: #27ae60; color: white; border: none; cursor: pointer; }
+    </style>
 </head>
 <body>
+
+<div class="card">
+    <h2>لوحة تحكم Dental Core</h2>
     <select id="year" onchange="loadSubjects()">
         <option value="">اختر السنة</option>
         <option value="Year1">السنة الأولى</option>
@@ -20,47 +29,53 @@
     <select id="subject"></select>
     <input type="text" id="desc" placeholder="وصف المحتوى">
     <input type="file" id="fileIn">
-    <button id="uploadBtn">رفع المحتوى</button>
+    <button id="uploadBtn">رفع المحتوى الآن</button>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-        
-        const db = getFirestore(initializeApp({apiKey: "AIzaSyBlIsEjPuyyp0VKgNffgu5StvSizata6Lo", projectId: "dental-core-2242b"}));
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+    
+    const db = getFirestore(initializeApp({apiKey: "AIzaSyBlIsEjPuyyp0VKgNffgu5StvSizata6Lo", projectId: "dental-core-2242b"}));
 
-        window.loadSubjects = async () => {
-            const year = document.getElementById('year').value;
-            const sem = document.getElementById('sem').value;
-            const subSelect = document.getElementById('subject');
-            subSelect.innerHTML = "";
-            const q = query(collection(db, "subjects"), where("year", "==", year), where("sem", "==", sem));
-            const snapshot = await getDocs(q);
-            snapshot.forEach(doc => {
-                const opt = document.createElement('option');
-                opt.value = doc.data().name;
-                opt.innerHTML = doc.data().name;
-                subSelect.appendChild(opt);
-            });
-        };
-
-        document.getElementById('uploadBtn').addEventListener('click', async () => {
-            const file = document.getElementById('fileIn').files[0];
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("upload_preset", "dental_core");
-
-            const res = await fetch("https://api.cloudinary.com/v1_1/nuuxgskn/upload", { method: "POST", body: formData });
-            const data = await res.json();
-
-            await addDoc(collection(db, "materials"), {
-                year: document.getElementById('year').value,
-                sem: document.getElementById('sem').value,
-                subject: document.getElementById('subject').value,
-                description: document.getElementById('desc').value,
-                url: data.secure_url
-            });
-            alert("تم الرفع بنجاح يا دكتور!");
+    window.loadSubjects = async () => {
+        const year = document.getElementById('year').value;
+        const sem = document.getElementById('sem').value;
+        const subSelect = document.getElementById('subject');
+        subSelect.innerHTML = "";
+        const q = query(collection(db, "subjects"), where("year", "==", year), where("sem", "==", sem));
+        const snapshot = await getDocs(q);
+        snapshot.forEach(doc => {
+            const opt = document.createElement('option');
+            opt.value = doc.data().name;
+            opt.innerHTML = doc.data().name;
+            subSelect.appendChild(opt);
         });
-    </script>
+    };
+
+    document.getElementById('uploadBtn').addEventListener('click', async () => {
+        const file = document.getElementById('fileIn').files[0];
+        if(!file) return alert("اختر ملفاً!");
+
+        // 1. رفع للمخزن
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "dental_core");
+
+        const res = await fetch("https://api.cloudinary.com/v1_1/nuuxgskn/upload", { method: "POST", body: formData });
+        const data = await res.json();
+
+        // 2. حفظ البيانات
+        await addDoc(collection(db, "materials"), {
+            year: document.getElementById('year').value,
+            sem: document.getElementById('sem').value,
+            subject: document.getElementById('subject').value,
+            description: document.getElementById('desc').value,
+            url: data.secure_url,
+            timestamp: new Date()
+        });
+        alert("تم الرفع والتنظيم بنجاح يا دكتور!");
+    });
+</script>
 </body>
 </html>
