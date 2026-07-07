@@ -3,74 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <title>Dental Core - Admin Panel</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 12px; max-width: 500px; margin: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; }
-    </style>
 </head>
 <body>
-
-<div class="card">
-    <h2>رفع محتوى Dental Core</h2>
-    <select id="year">
+    <select id="year" onchange="loadSubjects()">
+        <option value="">اختر السنة</option>
         <option value="Year1">السنة الأولى</option>
         <option value="Year2">السنة الثانية</option>
         <option value="Year3">السنة الثالثة</option>
+        <option value="Year4">السنة الرابعة</option>
+        <option value="Year5">السنة الخامسة</option>
     </select>
-    <select id="semester">
+    <select id="sem" onchange="loadSubjects()">
         <option value="Sem1">الترم الأول</option>
         <option value="Sem2">الترم الثاني</option>
     </select>
-    <input type="text" id="subject" placeholder="اسم المادة">
-    <select id="type">
-        <option value="Lec">Lec</option>
-        <option value="Lab">Lab</option>
-    </select>
-    <input type="number" id="number" placeholder="رقم المحاضرة (1-10)">
-    <input type="file" id="fileInput">
+    <select id="subject"></select>
+    <input type="text" id="desc" placeholder="وصف المحتوى">
+    <input type="file" id="fileIn">
     <button id="uploadBtn">رفع المحتوى</button>
-</div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBlIsEjPuyyp0VKgNffgu5StvSizata6Lo",
-      projectId: "dental-core-2242b"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    document.getElementById('uploadBtn').addEventListener('click', async () => {
-        const file = document.getElementById('fileInput').files[0];
-        if (!file) return alert("اختر ملفاً أولاً!");
-
-        // 1. رفع الملف لـ Cloudinary
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "dental_core"); 
-
-        const res = await fetch("https://api.cloudinary.com/v1_1/nuuxgskn/upload", {
-            method: "POST",
-            body: formData
-        });
-        const data = await res.json();
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
         
-        // 2. حفظ الرابط في Firebase
-        await addDoc(collection(db, "materials"), {
-            year: document.getElementById('year').value,
-            semester: document.getElementById('semester').value,
-            subject: document.getElementById('subject').value,
-            type: document.getElementById('type').value,
-            number: document.getElementById('number').value,
-            url: data.secure_url
+        const db = getFirestore(initializeApp({apiKey: "AIzaSyBlIsEjPuyyp0VKgNffgu5StvSizata6Lo", projectId: "dental-core-2242b"}));
+
+        window.loadSubjects = async () => {
+            const year = document.getElementById('year').value;
+            const sem = document.getElementById('sem').value;
+            const subSelect = document.getElementById('subject');
+            subSelect.innerHTML = "";
+            const q = query(collection(db, "subjects"), where("year", "==", year), where("sem", "==", sem));
+            const snapshot = await getDocs(q);
+            snapshot.forEach(doc => {
+                const opt = document.createElement('option');
+                opt.value = doc.data().name;
+                opt.innerHTML = doc.data().name;
+                subSelect.appendChild(opt);
+            });
+        };
+
+        document.getElementById('uploadBtn').addEventListener('click', async () => {
+            const file = document.getElementById('fileIn').files[0];
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", "dental_core");
+
+            const res = await fetch("https://api.cloudinary.com/v1_1/nuuxgskn/upload", { method: "POST", body: formData });
+            const data = await res.json();
+
+            await addDoc(collection(db, "materials"), {
+                year: document.getElementById('year').value,
+                sem: document.getElementById('sem').value,
+                subject: document.getElementById('subject').value,
+                description: document.getElementById('desc').value,
+                url: data.secure_url
+            });
+            alert("تم الرفع بنجاح يا دكتور!");
         });
-        alert("تم الرفع بنجاح يا دكتور إبراهيم!");
-    });
-</script>
+    </script>
 </body>
 </html>
