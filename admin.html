@@ -1,29 +1,62 @@
-<!-- admin.html -->
-<select id="year" onchange="loadSubjects()">
-    <option value="Year1">سنة أولى</option>
-    <!-- كرر لباقي السنين -->
-</select>
-<select id="sem"><option value="Sem1">ترم أول</option><option value="Sem2">ترم ثاني</option></select>
-<select id="subject"></select>
-<select id="type"><option value="Lec">Lec</option><option value="Lab">Lab</option></select>
-<select id="num"><script>for(let i=1; i<=10; i++) document.write(`<option value="${i}">${i}</option>`);</script></select>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Dental Core - Admin</title>
+</head>
+<body>
+    <h3>Dental Core - لوحة التحكم</h3>
+    
+    <select id="year" onchange="populateSubjects()">
+        <option value="Year1">السنة الأولى</option>
+        <option value="Year2">السنة الثانية</option>
+        <option value="Year3">السنة الثالثة</option>
+        <option value="Year4">السنة الرابعة</option>
+        <option value="Year5">السنة الخامسة</option>
+    </select>
 
-<input type="file" id="fileIn">
-<button onclick="uploadContent()">إضافة المحتوى</button>
+    <select id="sem">
+        <option value="Sem1">الترم الأول</option>
+        <option value="Sem2">الترم الثاني</option>
+    </select>
 
-<script type="module">
-    // كود الربط بـ Firebase و Cloudinary
-    async function uploadContent() {
-        const data = {
-            year: document.getElementById('year').value,
-            sem: document.getElementById('sem').value,
-            subject: document.getElementById('subject').value,
-            type: document.getElementById('type').value,
-            number: document.getElementById('num').value,
-            url: "رابط_الملف_من_Cloudinary" 
+    <select id="subject"></select>
+
+    <select id="type">
+        <option value="Lec">Lec 1 - 10</option>
+        <option value="Lab">Lab 1 - 10</option>
+    </select>
+
+    <select id="num">
+        <script>for(let i=1; i<=10; i++) document.write(`<option value="${i}">${i}</option>`);</script>
+    </select>
+
+    <input type="file" id="fileIn">
+    <button id="uploadBtn">رفع المحتوى</button>
+
+    <script>
+        const subjectsData = {
+            "Year1": ["Dental Anatomy 1", "General Anatomy 1", "General Histology 1", "General Physiology 1", "Biochemistry 1", "Dental Anatomy 2", "General Anatomy 2", "General Histology 2", "General Physiology 2", "Biochemistry 2"],
+            "Year2": ["Oral Histology 1", "Dental Biomaterials 1", "Pharmacology 1", "General Pathology 1", "Microbiology 1", "Oral Histology 2", "Dental Biomaterials 2", "Pharmacology 2", "General Pathology 2", "Microbiology 2", "Oral Pathology 1"],
+            "Year3": ["Removable Prosthodontics 1", "Fixed Prosthodontics 1", "Operative Dentistry 1", "Oral Radiology 1", "Orthodontics 1", "Operative Dentistry 2", "Fixed Prosthodontics 2", "Removable Prosthodontics 2", "Oral Radiology 2", "Orthodontics 2", "Oral Pathology 3", "Oral Diagnosis"],
+            "Year4": ["Operative Dentistry 3", "Fixed Prosthodontics 3", "Removable Prosthodontics 3", "Oral Medicine 1", "Endodontics 1", "Preventive Dentistry", "Oral Surgery 1", "Operative Dentistry 4", "Fixed Prosthodontics 4", "Removable Prosthodontics 4", "Oral Medicine 2", "Endodontics 2", "Oral Radiology 3", "Oral Surgery 2", "Periodontology 1"],
+            "Year5": ["Operative Dentistry 5", "Fixed Prosthodontics 5", "Removable Prosthodontics 5", "Endodontics 3", "Oral Surgery 3", "Pediatric Dentistry 1", "Implantology 1", "Periodontology 2", "Operative Dentistry 6", "Fixed Prosthodontics 6", "Removable Prosthodontics 6", "Endodontics 4", "Oral Surgery 4", "Pediatric Dentistry 2", "Special Care Dentistry", "Implantology 2"]
         };
-        // إضافة لـ Firestore
-        await addDoc(collection(db, "DentalCore_Materials"), data);
-        alert("تمت الإضافة لـ Dental Core!");
-    }
-</script>
+
+        function populateSubjects() {
+            const year = document.getElementById('year').value;
+            const subjectSelect = document.getElementById('subject');
+            subjectSelect.innerHTML = "";
+            subjectsData[year].forEach(sub => {
+                let opt = document.createElement('option');
+                opt.value = sub;
+                opt.innerHTML = sub;
+                subjectSelect.appendChild(opt);
+            });
+        }
+
+        // تشغيل الوظيفة عند تحميل الصفحة
+        populateSubjects();
+    </script>
+</body>
+</html>
