@@ -1,63 +1,21 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>Dental Core - البوابة التعليمية</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; }
-        button { background: #3498db; color: white; border: none; cursor: pointer; }
-        .material-card { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h2>Dental Core - اختر المحتوى</h2>
-    <select id="year">
-        <option value="Year1">السنة الأولى</option>
-        <option value="Year2">السنة الثانية</option>
-        <option value="Year3">السنة الثالثة</option>
+<!-- index.html -->
+<div id="content">
+    <select id="studentYear" onchange="filterData()">
+        <option value="Year1">سنة أولى</option>
+        <!-- باقي السنين -->
     </select>
-    <select id="semester">
-        <option value="Sem1">الترم الأول</option>
-        <option value="Sem2">الترم الثاني</option>
-    </select>
-    <button onclick="loadFilteredMaterials()">عرض المواد</button>
-    
-    <div id="results"></div>
+    <div id="materialList"></div> <!-- هنا هتظهر المحاضرات -->
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-
-    const firebaseConfig = { apiKey: "AIzaSyBlIsEjPuyyp0VKgNffgu5StvSizata6Lo", projectId: "dental-core-2242b" };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    window.loadFilteredMaterials = async () => {
-        const year = document.getElementById('year').value;
-        const sem = document.getElementById('semester').value;
-        const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = "جاري البحث...";
-
-        const q = query(collection(db, "materials"), where("year", "==", year), where("semester", "==", sem));
-        const querySnapshot = await getDocs(q);
-        
-        resultsDiv.innerHTML = "";
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            resultsDiv.innerHTML += `
-                <div class="material-card">
-                    <span>${data.subject}</span>
-                    <a href="${data.link}" target="_blank" style="color: #27ae60;">فتح/تحميل</a>
-                </div>
-            `;
+<script>
+    async function showMaterials() {
+        const q = query(collection(db, "DentalCore_Materials"), 
+            where("year", "==", document.getElementById('studentYear').value));
+        const snapshot = await getDocs(q);
+        snapshot.forEach(doc => {
+            const m = doc.data();
+            document.getElementById('materialList').innerHTML += 
+                `<a href="${m.url}">${m.subject} - ${m.type} ${m.number}</a><br>`;
         });
-        if(resultsDiv.innerHTML === "") resultsDiv.innerHTML = "لا توجد مواد لهذا الاختيار.";
-    };
+    }
 </script>
-</body>
-</html>
