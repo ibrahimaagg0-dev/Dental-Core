@@ -1,21 +1,138 @@
-<!-- index.html -->
-<div id="content">
-    <select id="studentYear" onchange="filterData()">
-        <option value="Year1">سنة أولى</option>
-        <!-- باقي السنين -->
-    </select>
-    <div id="materialList"></div> <!-- هنا هتظهر المحاضرات -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Dental Core - منصة الطالب</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
+        
+        /* التنسيق الأفقي الموحد */
+        .grid-row { display: flex; gap: 20px; margin-bottom: 15px; }
+        .field { flex: 1; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; }
+        select { width: 100%; padding: 12px; border: 1px solid #bdc3c7; border-radius: 8px; font-size: 16px; background: #fff;}
+        button { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        button:hover { background: #2ecc71; }
+        
+        /* تنسيق منطقة عرض الملفات للطالب */
+        #results { margin-top: 25px; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 1px dashed #bdc3c7; min-height: 120px; }
+        .material-card { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; margin-bottom: 12px; border-radius: 8px; border-right: 5px solid #3498db; box-shadow: 0 3px 6px rgba(0,0,0,0.05); }
+        .material-info { font-weight: bold; color: #2c3e50; font-size: 16px; }
+        .material-desc { font-size: 13px; color: #7f8c8d; margin-top: 5px; }
+        .download-btn { background: #e74c3c; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .download-btn:hover { background: #c0392b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Dental Core - المنصة التعليمية</h2>
+    
+    <div class="grid-row">
+        <div class="field">
+            <label>السنة الدراسية</label>
+            <select id="year" onchange="populateSubjects()"></select>
+        </div>
+        <div class="field">
+            <label>الترم</label>
+            <select id="sem">
+                <option value="Sem1">الترم الأول</option>
+                <option value="Sem2">الترم الثاني</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-row">
+        <div class="field">
+            <label>المادة</label>
+            <select id="subject"></select>
+        </div>
+    </div>
+
+    <button onclick="fetchMaterials()">عرض المحاضرات والسكاشن</button>
+
+    <!-- هنا هتظهر الملفات للطالب بعد الضغط على عرض -->
+    <div id="results">
+        <p style="text-align: center; color: #95a5a6; font-size: 15px;">اختر السنة، الترم، والمادة ثم اضغط "عرض" لتظهر الملفات هنا...</p>
+    </div>
 </div>
 
-<script>
-    async function showMaterials() {
-        const q = query(collection(db, "DentalCore_Materials"), 
-            where("year", "==", document.getElementById('studentYear').value));
-        const snapshot = await getDocs(q);
-        snapshot.forEach(doc => {
-            const m = doc.data();
-            document.getElementById('materialList').innerHTML += 
-                `<a href="${m.url}">${m.subject} - ${m.type} ${m.number}</a><br>`;
-        });
+<script type="module">
+    // استدعاء Firebase لجلب البيانات
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+    
+    const db = getFirestore(initializeApp({
+        apiKey: "AIzaSyBlIsEjPuyyp0VKgNffgu5StvSizata6Lo", 
+        projectId: "dental-core-2242b"
+    }));
+
+    // بيانات الـ 5 سنين
+    const data = {
+        "Year1": ["Dental Anatomy 1", "General Anatomy 1", "General Histology 1", "General Physiology 1", "Biochemistry 1", "Dental Anatomy 2", "General Anatomy 2", "General Histology 2", "General Physiology 2", "Biochemistry 2"],
+        "Year2": ["Oral Histology 1", "Dental Biomaterials 1", "Pharmacology 1", "General Pathology 1", "Microbiology 1", "Oral Histology 2", "Dental Biomaterials 2", "Pharmacology 2", "General Pathology 2", "Microbiology 2", "Oral Pathology 1"],
+        "Year3": ["Removable Prosthodontics 1", "Fixed Prosthodontics 1", "Operative Dentistry 1", "Oral Radiology 1", "Orthodontics 1", "Operative Dentistry 2", "Fixed Prosthodontics 2", "Removable Prosthodontics 2", "Oral Radiology 2", "Orthodontics 2", "Oral Pathology 3", "Oral Diagnosis"],
+        "Year4": ["Operative Dentistry 3", "Fixed Prosthodontics 3", "Removable Prosthodontics 3", "Oral Medicine 1", "Endodontics 1", "Preventive Dentistry", "Oral Surgery 1", "Operative Dentistry 4", "Fixed Prosthodontics 4", "Removable Prosthodontics 4", "Oral Medicine 2", "Endodontics 2", "Oral Radiology 3", "Oral Surgery 2", "Periodontology 1"],
+        "Year5": ["Operative Dentistry 5", "Fixed Prosthodontics 5", "Removable Prosthodontics 5", "Endodontics 3", "Oral Surgery 3", "Pediatric Dentistry 1", "Implantology 1", "Periodontology 2", "Operative Dentistry 6", "Fixed Prosthodontics 6", "Removable Prosthodontics 6", "Endodontics 4", "Oral Surgery 4", "Pediatric Dentistry 2", "Special Care Dentistry", "Implantology 2"]
+    };
+
+    // تشغيل القوائم
+    window.populateSubjects = function() {
+        const year = document.getElementById('year').value;
+        const subSelect = document.getElementById('subject');
+        subSelect.innerHTML = "";
+        data[year].forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; });
+    }
+
+    const yearSelect = document.getElementById('year');
+    Object.keys(data).forEach(y => yearSelect.innerHTML += `<option value="${y}">${y.replace('Year', 'السنة ')}</option>`);
+    populateSubjects();
+
+    // دالة جلب الملفات من الفايربيز
+    window.fetchMaterials = async function() {
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '<p style="text-align: center; color: #2980b9;">⏳ جاري جلب المحتوى من Dental Core...</p>';
+        
+        const year = document.getElementById('year').value;
+        const sem = document.getElementById('sem').value;
+        const subject = document.getElementById('subject').value;
+
+        try {
+            // البحث في قاعدة البيانات عن ملفات المادة دي
+            const q = query(collection(db, "materials"), 
+                where("year", "==", year), 
+                where("subject", "==", subject) // شيلنا الترم عشان لو الملفات مش متسجلة بترميم تظهر برضه
+            );
+            
+            const snapshot = await getDocs(q);
+            
+            if (snapshot.empty) {
+                resultsDiv.innerHTML = '<p style="text-align: center; color: #e74c3c;">لا توجد ملفات مرفوعة لهذه المادة حتى الآن.</p>';
+                return;
+            }
+
+            resultsDiv.innerHTML = ""; // تفريغ الصندوق
+            
+            // عرض كل ملف جوه كارت شيك
+            snapshot.forEach(doc => {
+                const m = doc.data();
+                resultsDiv.innerHTML += `
+                    <div class="material-card">
+                        <div>
+                            <div class="material-info">${m.type} ${m.number}</div>
+                            <div class="material-desc">${m.description ? m.description : 'محاضرة/لاب لـ ' + m.subject}</div>
+                        </div>
+                        <a href="${m.url}" target="_blank" class="download-btn">فتح الملف</a>
+                    </div>
+                `;
+            });
+        } catch (error) {
+            resultsDiv.innerHTML = '<p style="text-align: center; color: red;">حدث خطأ في الاتصال بالسيرفر.</p>';
+            console.error(error);
+        }
     }
 </script>
+</body>
+</html>
