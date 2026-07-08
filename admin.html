@@ -1,77 +1,29 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>Dental Core - Admin Panel</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f7f6; }
-        .card { background: white; padding: 20px; border-radius: 12px; max-width: 450px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        select, input, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { background: #27ae60; color: white; border: none; cursor: pointer; font-weight: bold; }
-    </style>
-</head>
-<body>
+<!-- admin.html -->
+<select id="year" onchange="loadSubjects()">
+    <option value="Year1">سنة أولى</option>
+    <!-- كرر لباقي السنين -->
+</select>
+<select id="sem"><option value="Sem1">ترم أول</option><option value="Sem2">ترم ثاني</option></select>
+<select id="subject"></select>
+<select id="type"><option value="Lec">Lec</option><option value="Lab">Lab</option></select>
+<select id="num"><script>for(let i=1; i<=10; i++) document.write(`<option value="${i}">${i}</option>`);</script></select>
 
-<div class="card">
-    <h3>لوحة تحكم إبراهيم أجوه</h3>
-    <select id="year" onchange="loadSubjects()">
-        <option value="Year1">السنة الأولى</option>
-        <option value="Year2">السنة الثانية</option>
-        <option value="Year3">السنة الثالثة</option>
-        <option value="Year4">السنة الرابعة</option>
-        <option value="Year5">السنة الخامسة</option>
-    </select>
-    <select id="subject"></select>
-    <select id="type"><option value="Lec">Lec</option><option value="Lab">Lab</option></select>
-    <select id="num"><script>for(let i=1; i<=10; i++) document.write(`<option value="${i}">محاضرة/لاب ${i}</option>`);</script></select>
-    <input type="text" id="desc" placeholder="وصف المحتوى">
-    <input type="file" id="fileIn">
-    <button id="uploadBtn">رفع المحتوى الآن</button>
-</div>
+<input type="file" id="fileIn">
+<button onclick="uploadContent()">إضافة المحتوى</button>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-    
-    const db = getFirestore(initializeApp({apiKey: "AIzaSyBlIsEjPuyyp0VKgNffgu5StvSizata6Lo", projectId: "dental-core-2242b"}));
-
-    const data = {
-        "Year1": ["Dental Anatomy 1", "General Anatomy 1", "General Histology 1", "General Physiology 1", "Biochemistry 1", "Dental Anatomy 2", "General Anatomy 2", "General Histology 2", "General Physiology 2", "Biochemistry 2"],
-        "Year2": ["Oral Histology 1", "Dental Biomaterials 1", "Pharmacology 1", "General Pathology 1", "Microbiology 1", "Oral Histology 2", "Dental Biomaterials 2", "Pharmacology 2", "General Pathology 2", "Microbiology 2", "Oral Pathology 1"],
-        "Year3": ["Removable Prosthodontics 1", "Fixed Prosthodontics 1", "Operative Dentistry 1", "Oral Radiology 1", "Orthodontics 1", "Operative Dentistry 2", "Fixed Prosthodontics 2", "Removable Prosthodontics 2", "Oral Radiology 2", "Orthodontics 2", "Oral Pathology 3", "Oral Diagnosis"],
-        "Year4": ["Operative Dentistry 3", "Fixed Prosthodontics 3", "Removable Prosthodontics 3", "Oral Medicine 1", "Endodontics 1", "Preventive Dentistry", "Oral Surgery 1", "Operative Dentistry 4", "Fixed Prosthodontics 4", "Removable Prosthodontics 4", "Oral Medicine 2", "Endodontics 2", "Oral Radiology 3", "Oral Surgery 2", "Periodontology 1"],
-        "Year5": ["Operative Dentistry 5", "Fixed Prosthodontics 5", "Removable Prosthodontics 5", "Endodontics 3", "Oral Surgery 3", "Pediatric Dentistry 1", "Implantology 1", "Periodontology 2", "Operative Dentistry 6", "Fixed Prosthodontics 6", "Removable Prosthodontics 6", "Endodontics 4", "Oral Surgery 4", "Pediatric Dentistry 2", "Special Care Dentistry", "Implantology 2"]
-    };
-
-    window.loadSubjects = () => {
-        const year = document.getElementById('year').value;
-        const subSelect = document.getElementById('subject');
-        subSelect.innerHTML = "";
-        data[year].forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; });
-    };
-    loadSubjects();
-
-    document.getElementById('uploadBtn').addEventListener('click', async () => {
-        const file = document.getElementById('fileIn').files[0];
-        if(!file) return alert("اختر ملفاً!");
-
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "dental_core");
-
-        const res = await fetch("https://api.cloudinary.com/v1_1/nuuxgskn/upload", { method: "POST", body: formData });
-        const result = await res.json();
-
-        await addDoc(collection(db, "materials"), {
+    // كود الربط بـ Firebase و Cloudinary
+    async function uploadContent() {
+        const data = {
             year: document.getElementById('year').value,
+            sem: document.getElementById('sem').value,
             subject: document.getElementById('subject').value,
             type: document.getElementById('type').value,
             number: document.getElementById('num').value,
-            description: document.getElementById('desc').value,
-            url: result.secure_url
-        });
-        alert("تم الرفع بنجاح يا إبراهيم!");
-    });
+            url: "رابط_الملف_من_Cloudinary" 
+        };
+        // إضافة لـ Firestore
+        await addDoc(collection(db, "DentalCore_Materials"), data);
+        alert("تمت الإضافة لـ Dental Core!");
+    }
 </script>
-</body>
-</html>
