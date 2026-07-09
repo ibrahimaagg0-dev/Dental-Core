@@ -3,11 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <title>Dental Core - Admin</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+        
+        const db = getFirestore(initializeApp({
+            apiKey: "AIzaSyBlIsEjPuyyp0VKgNffgu5StvSizata6Lo",
+            projectId: "dental-core-2242b"
+        }));
+
+        // دالة الرفع
+        window.uploadFile = async () => {
+            const file = document.getElementById('fileIn').files[0];
+            if (!file) return alert("من فضلك اختر ملفاً!");
+            
+            const btn = document.getElementById('uploadBtn');
+            btn.innerText = "جاري الرفع...";
+            btn.disabled = true;
+
+            try {
+                // 1. رفع الملف لـ Cloudinary
+                const fd = new FormData();
+                fd.append("file", file);
+                fd.append("upload_preset", "dental_core");
+                const res = await fetch("https://api.cloudinary.com/v1_1/nuuxgskn/upload", {method: "POST", body: fd});
+                const data = await res.json();
+
+                // 2. حفظ البيانات في Firebase
+                await addDoc(collection(db, "materials"), {
+                    year: document.getElementById('year').value,
+                    sem: document.getElementById('sem').value,
+                    subject: document.getElementById('subject').value,
+                    type: document.getElementById('type').value,
+                    number: document.getElementById('num').value,
+                    url: data.secure_url,
+                    timestamp: new Date()
+                });
+
+                alert("تم الرفع بنجاح يا دكتور إبراهيم!");
+                btn.innerText = "إضافة إلى Dental Core";
+                btn.disabled = false;
+            } catch (e) {
+                alert("حدث خطأ: " + e.message);
+                btn.innerText = "إضافة إلى Dental Core";
+                btn.disabled = false;
+            }
+        };
+    </script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; }
         .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         h2 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
-        /* التنسيق الأفقي */
         .grid-row { display: flex; gap: 20px; margin-bottom: 15px; }
         .field { flex: 1; }
         label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; }
@@ -54,7 +100,7 @@
         </div>
     </div>
 
-    <button id="uploadBtn">إضافة إلى Dental Core</button>
+    <button id="uploadBtn" onclick="uploadFile()">إضافة إلى Dental Core</button>
 </div>
 
 <script>
@@ -73,7 +119,6 @@
         data[year].forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; });
     }
 
-    // تعبئة السنة عند الفتح
     const yearSelect = document.getElementById('year');
     Object.keys(data).forEach(y => yearSelect.innerHTML += `<option value="${y}">${y.replace('Year', 'سنة ')}</option>`);
     populateSubjects();
